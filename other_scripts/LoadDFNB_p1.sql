@@ -105,8 +105,8 @@ TRUNCATE TABLE dbo.tblAccountDim;
 
 INSERT INTO dbo.tblAccountDim
 SELECT DISTINCT 
-       s.acct_id AS acct_cust_id
-     , s.cust_id
+      s.acct_id 
+     , s.pri_cust_id
      , s.prod_id
      , s.open_date
      , s.close_date
@@ -114,7 +114,8 @@ SELECT DISTINCT
      , s.branch_id
      , s.loan_amt
   FROM dbo.stg_p1 AS s
- ORDER BY s.acct_id;
+  WHERE s.acct_cust_role_id <> 2
+  ORDER BY s.acct_id;
 --Load Table AccountCustomerDim
 
 TRUNCATE TABLE dbo.tblAccountCustomerDim;

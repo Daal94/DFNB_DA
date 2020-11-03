@@ -17,14 +17,15 @@ distributed under the same license terms.
  
 ******************************************************************************************************************/
 
+
 USE [DFNB2]
 GO
 
-/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 10/27/2020 9:11:23 PM ******/
+/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 10/28/2020 7:08:05 PM ******/
 DROP TABLE [dbo].[tblAccountDim]
 GO
 
-/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 10/27/2020 9:11:23 PM ******/
+/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 10/28/2020 7:08:05 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -32,9 +33,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[tblAccountDim](
-	[acct_id] [int] IDENTITY(1,1) NOT NULL,
-	[acct_cust_id] [int] NOT NULL,
-	[cust_id] [smallint] NOT NULL,
+	[acct_id] [int] NOT NULL,
+	[pri_cust_id] [smallint] NOT NULL,
 	[prod_id] [smallint] NOT NULL,
 	[open_date] [date] NOT NULL,
 	[close_date] [date] NOT NULL,
