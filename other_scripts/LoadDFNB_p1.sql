@@ -5,8 +5,12 @@ MODIFICATION LOG:
 Ver      Date        Author        Description
 -----   ----------   -----------   -------------------------------------------------------------------------------
 1.0     10/21/2020   DARENA       1. Built this table for IT240
+2.0     11/02/2020   DARENA       2. Fixed data for Accounts tbl
+
+
 RUNTIME: 
 Approx. 1 min
+
 NOTES:
 These sre scripts to load data into DFNB
 

@@ -5,6 +5,7 @@ MODIFICATION LOG:
 Ver      Date        Author        Description
 -----   ----------   -----------   -------------------------------------------------------------------------------
 1.0     11/02/2020   DARENA       1. Built this table for LDS BC IT240
+2.0     11/02/2020   DARENA       2. Views modified
 RUNTIME: 
 Approx. 1 min
 NOTES:
