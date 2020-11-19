@@ -172,4 +172,5 @@ SELECT DISTINCT
      , sp2.tran_type_id
      , sp2.tran_amt
      , sp2.tran_fee_amt
-  FROM dbo.stg_p2 sp2
+  FROM dbo.stg_p2 sp2;
+
