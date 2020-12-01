@@ -6,6 +6,7 @@ Ver      Date        Author        Description
 -----   ----------   -----------   -------------------------------------------------------------------------------
 1.0     11/02/2020   DARENA       1. Built this table for LDS BC IT240
 2.0     11/02/2020   DARENA       2. Views modified
+3.0		11/30/2020	 DARENA		  3. Future prescribed
 RUNTIME: 
 Approx. 1 min
 NOTES:
@@ -14,7 +15,7 @@ NOTES:
 
 USE [DFNB2]
 GO
-/****** Object:  Table [dbo].[tblTransactionFact]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblTransactionFact]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -27,10 +28,14 @@ CREATE TABLE [dbo].[tblTransactionFact](
 	[tran_type_id] [smallint] NOT NULL,
 	[tran_amt] [int] NOT NULL,
 	[tran_fee_amt] [decimal](15, 3) NOT NULL,
-	[tran_id] [int] IDENTITY(1,1) NOT NULL
+	[tran_id] [int] IDENTITY(1,1) NOT NULL,
+ CONSTRAINT [PK_tblTransactionFact] PRIMARY KEY CLUSTERED 
+(
+	[tran_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblCustomerDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblCustomerDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -49,7 +54,7 @@ CREATE TABLE [dbo].[tblCustomerDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblBranchDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblBranchDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -63,7 +68,7 @@ CREATE TABLE [dbo].[tblBranchDim](
 	[region_id] [int] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAccountDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -83,7 +88,7 @@ CREATE TABLE [dbo].[tblAccountDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[v_TopCustomers]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_TopCustomers]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -113,7 +118,101 @@ WHERE s1.customer_branch_rank <= 10
 AND
 s1.branch_code <> 'UNK';
 GO
-/****** Object:  View [dbo].[v_TransactionsBranches]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_NumberOfAccountsBranch]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[v_NumberOfAccountsBranch] as(
+SELECT  tbd.branch_desc
+     , COUNT(tad.acct_id) AS 'Count of Accounts'
+  FROM dbo.tblAccountDim AS tad
+       JOIN
+       dbo.tblBranchDim AS tbd ON tad.branch_id = tbd.branch_id
+GROUP BY tbd.branch_desc )
+GO
+/****** Object:  View [dbo].[v_TotalLoansByBranch]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[v_TotalLoansByBranch] AS (
+SELECT tbd.branch_desc
+     , COUNT(tad.pri_cust_id) AS 'Count Of Customers'
+     , SUM(tad.loan_amt) AS 'Total Loan Amount'
+  FROM dbo.tblAccountDim AS tad
+       JOIN
+       dbo.tblBranchDim AS tbd ON tad.branch_id = tbd.branch_id
+WHERE year(tad.open_date) > 2017
+ GROUP BY tbd.branch_desc)
+GO
+/****** Object:  View [dbo].[v_BranchSummary]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[v_BranchSummary] AS (
+SELECT ad.branch_id AS 'Branch ID'
+     , tbd.branch_desc AS 'Branch Name'
+     , YEAR(ad.open_date) AS 'Year'
+     , SUM(ad.loan_amt) AS 'Total Loan Amount'
+  FROM dbo.tblAccountDim AS ad
+       JOIN
+       dbo.tblBranchDim AS tbd ON ad.branch_id = tbd.branch_id
+ WHERE YEAR(ad.open_date) IN
+                            (
+                             2017
+                           , 2018
+                           , 2019
+                            )
+ GROUP BY ad.branch_id
+        , tbd.branch_desc
+        , YEAR(ad.open_date))
+GO
+/****** Object:  View [dbo].[v_RegionSummary]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[v_RegionSummary] AS (
+ SELECT tbd.region_id AS 'Region ID'
+     , YEAR(ad.open_date) AS 'Year'
+     , SUM(ad.loan_amt) AS 'Total Loan Amount'
+  FROM dbo.tblAccountDim AS ad
+       JOIN
+       dbo.tblBranchDim AS tbd ON ad.branch_id = tbd.branch_id
+ WHERE YEAR(ad.open_date) IN
+                            (
+                             2017
+                           , 2018
+                           , 2019
+                            )
+ GROUP BY tbd.region_id
+        , YEAR(ad.open_date)
+);
+GO
+/****** Object:  View [dbo].[v_AreaSummary]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[v_AreaSummary] AS (
+ SELECT tbd.area_id AS 'Area ID'
+     , YEAR(ad.open_date) AS 'Year'
+     , SUM(ad.loan_amt) AS 'Total Loan Amount'
+  FROM dbo.tblAccountDim AS ad
+       JOIN
+       dbo.tblBranchDim AS tbd ON ad.branch_id = tbd.branch_id
+ WHERE YEAR(ad.open_date) IN
+                            (
+                             2017
+                           , 2018
+                           , 2019
+                            )
+ GROUP BY tbd.area_id
+        , YEAR(ad.open_date));
+GO
+/****** Object:  View [dbo].[v_TransactionsBranches]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -131,7 +230,7 @@ tf.branch_id
 ,tbd.branch_code
 ,tbd.branch_desc;
 GO
-/****** Object:  Table [dbo].[tblTransactionTypeDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblTransactionTypeDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -144,7 +243,7 @@ CREATE TABLE [dbo].[tblTransactionTypeDim](
 	[cur_cust_req_ind] [varchar](1) NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[v_TransactionsTypesYear]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_TransactionsTypesYear]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -163,7 +262,7 @@ tbd.branch_desc
 ,tttd.tran_type_desc
 ,year(tf.tran_date)
 GO
-/****** Object:  View [dbo].[v_TotalAmaount]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_TotalAmaount]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -178,7 +277,7 @@ SELECT tbd.branch_code
   group BY
 	tbd.branch_code;
 GO
-/****** Object:  View [dbo].[v_CustomersBristol]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersBristol]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -188,7 +287,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'BR' 
 GO
-/****** Object:  View [dbo].[v_CustomersClinton]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersClinton]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -198,7 +297,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'CL' 
 GO
-/****** Object:  View [dbo].[v_CustomersFairview]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersFairview]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -208,7 +307,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'FV' 
 GO
-/****** Object:  View [dbo].[v_CustomersFranklin]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersFranklin]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -218,7 +317,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'FR' 
 GO
-/****** Object:  View [dbo].[v_CustomersGeorgeTown]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersGeorgeTown]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -228,7 +327,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'GT' 
 GO
-/****** Object:  View [dbo].[v_CustomersWashington]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  View [dbo].[v_CustomersWashington]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -238,7 +337,7 @@ SELECT sp.cust_id,sp.last_name, sp.first_name
 FROM dbo.stg_p1 sp
 WHERE sp.acct_branch_code = 'WA' 
 GO
-/****** Object:  Table [dbo].[tblAccountCustomerDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAccountCustomerDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -254,7 +353,7 @@ CREATE TABLE [dbo].[tblAccountCustomerDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblAccountCustomerRoleDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAccountCustomerRoleDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -268,7 +367,7 @@ CREATE TABLE [dbo].[tblAccountCustomerRoleDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblAccountFact]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAccountFact]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -279,7 +378,7 @@ CREATE TABLE [dbo].[tblAccountFact](
 	[cur_bal] [decimal](20, 4) NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblAddressDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAddressDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -295,7 +394,7 @@ CREATE TABLE [dbo].[tblAddressDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblAreaDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblAreaDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -309,7 +408,23 @@ CREATE TABLE [dbo].[tblAreaDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblProductDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblBranchGoal]    Script Date: 11/30/2020 11:36:47 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tblBranchGoal](
+	[branch_goal_id] [int] IDENTITY(1,1) NOT NULL,
+	[branch_id] [smallint] NOT NULL,
+	[branch_desc] [varchar](100) NOT NULL,
+	[goal] [int] NULL,
+ CONSTRAINT [PK_tblBranchGoal] PRIMARY KEY CLUSTERED 
+(
+	[branch_goal_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tblProductDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -323,7 +438,7 @@ CREATE TABLE [dbo].[tblProductDim](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[tblRegionDim]    Script Date: 11/16/2020 9:29:27 PM ******/
+/****** Object:  Table [dbo].[tblRegionDim]    Script Date: 11/30/2020 11:36:47 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON

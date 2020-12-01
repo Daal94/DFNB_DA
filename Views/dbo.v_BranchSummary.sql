@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
-NAME:    LoadDFNB_p2
-PURPOSE: Table creation RegionDim
+NAME:    [v_BranchSummary]
+PURPOSE: View creation [v_BranchSummary]
 MODIFICATION LOG:
 Ver      Date        Author        Description
 -----   ----------   -----------   -------------------------------------------------------------------------------
@@ -8,7 +8,7 @@ Ver      Date        Author        Description
 RUNTIME: 
 Approx. 1 min
 NOTES:
-Creates dbo.tblRegionDim
+Creates [v_BranchSummary]
 
 LICENSE: This code is covered by the GNU General Public License which guarantees end users
 the freedom to run, study, share, and modify the code. This license grants the recipients
@@ -17,28 +17,38 @@ distributed under the same license terms.
  
 ******************************************************************************************************************/
 
+
 USE [DFNB2]
 GO
 
-/****** Object:  Table [dbo].[tblRegionDim]    Script Date: 10/27/2020 5:01:23 PM ******/
-DROP TABLE [dbo].[tblRegionDim]
+/****** Object:  View [dbo].[v_BranchSummary]    Script Date: 11/30/2020 11:31:25 PM ******/
+DROP VIEW [dbo].[v_BranchSummary]
 GO
 
-/****** Object:  Table [dbo].[tblRegionDim]    Script Date: 10/27/2020 5:01:23 PM ******/
+/****** Object:  View [dbo].[v_BranchSummary]    Script Date: 11/30/2020 11:31:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblRegionDim](
-	[region_id] [int] NOT NULL,
-	[region_name] [varchar](50) NULL,
- CONSTRAINT [PK_tblRegionDim] PRIMARY KEY CLUSTERED 
-(
-	[region_id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
+CREATE VIEW [dbo].[v_BranchSummary] AS (
+SELECT ad.branch_id AS 'Branch ID'
+     , tbd.branch_desc AS 'Branch Name'
+     , YEAR(ad.open_date) AS 'Year'
+     , SUM(ad.loan_amt) AS 'Total Loan Amount'
+  FROM dbo.tblAccountDim AS ad
+       JOIN
+       dbo.tblBranchDim AS tbd ON ad.branch_id = tbd.branch_id
+ WHERE YEAR(ad.open_date) IN
+                            (
+                             2017
+                           , 2018
+                           , 2019
+                            )
+ GROUP BY ad.branch_id
+        , tbd.branch_desc
+        , YEAR(ad.open_date))
 GO
 
 
