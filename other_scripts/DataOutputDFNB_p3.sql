@@ -5,6 +5,7 @@ MODIFICATION LOG:
 Ver      Date        Author        Description
 -----   ----------   -----------   -------------------------------------------------------------------------------
 1.0     10/21/2020   DARENA       1. Built this table for IT240
+2.0		12/09/2020	 DARENA		  2. Data for Project 3
 RUNTIME: 
 Approx. 1 min
 NOTES:
